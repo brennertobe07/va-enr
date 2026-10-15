@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENR Dashboard — Staff Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #0f1117;
+  --surface:     #1a1d27;
+  --surface2:    #20243a;
+  --border:      #2a2d3a;
+  --text:        #e8eaf0;
+  --text-muted:  #8890a8;
+  --accent:      #3a8fd4;
+  --yes:         #2166ac;
+  --yes-lt:      #74add1;
+  --no:          #c0392b;
+  --no-lt:       #e57368;
+  --green:       #27ae60;
+  --amber:       #f0a500;
+  --font:        'DM Sans', system-ui, sans-serif;
+  --mono:        'DM Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 32px 28px 64px;
+}
+header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  margin-bottom: 26px;
+}
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  margin-bottom: 4px;
+}
+h1 span {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-size: 15px;
+  margin-left: 10px;
+  letter-spacing: 0;
+}
+header .sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+section {
+  margin-bottom: 30px;
+}
+h2 {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--yes-lt);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--border);
+}
+h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 14px;
+  margin-bottom: 5px;
+}
+p {
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 13.5px;
+}
+.dl {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 8px 18px;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.dl dt {
+  font-family: var(--mono);
+  color: var(--yes-lt);
+  font-weight: 500;
+  font-size: 12.5px;
+}
+.dl dd {
+  color: var(--text);
+}
+.note {
+  background: rgba(58,143,212,0.08);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: 0 4px 4px 0;
+  font-size: 12.5px;
+  margin: 12px 0;
+  color: var(--text-muted);
+}
+.note strong { color: var(--text); }
+.warning {
+  background: rgba(240,165,0,0.08);
+  border-left: 3px solid var(--amber);
+  padding: 10px 14px;
+  border-radius: 0 4px 4px 0;
+  font-size: 12.5px;
+  margin: 12px 0;
+  color: var(--text);
+}
+.mono { font-family: var(--mono); font-size: 12px; }
+.muted { color: var(--text-muted); }
+
+/* Chip examples matching dashboard */
+.ab-chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-family: var(--font);
+  line-height: 1.5;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.ab-chip.not-reported    { background: rgba(136,144,168,0.12); color: var(--text-muted); border: 1px solid rgba(136,144,168,0.35); }
+.ab-chip.in-person-only  { background: rgba(240,165,0,0.14);   color: var(--amber);      border: 1px solid rgba(240,165,0,0.45); }
+.ab-chip.mailed-only     { background: rgba(116,205,201,0.14); color: #74cdc9;           border: 1px solid rgba(116,205,201,0.45); }
+.ab-chip.all-reported    { background: rgba(58,143,212,0.15);  color: var(--accent);     border: 1px solid rgba(58,143,212,0.45); }
+.ab-chip.final           { background: rgba(39,174,96,0.15);   color: var(--green);      border: 1px solid rgba(39,174,96,0.45); }
+
+.bar-demo {
+  display: inline-block;
+  width: 220px;
+  height: 14px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 10px;
+}
+.bar-demo .solid { background: var(--yes); height: 100%; }
+.bar-demo .faint { background: var(--yes-lt); opacity: 0.22; height: 100%; }
+.bar-row { margin: 6px 0; font-size: 13px; }
+.bar-row strong { color: var(--yes-lt); font-family: var(--mono); width: 150px; display: inline-block; }
+
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 28px;
+  margin-top: 10px;
+}
+@media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+
+.colkey {
+  font-family: var(--mono);
+  color: var(--yes-lt);
+  font-size: 12px;
+  font-weight: 500;
+}
+.colval { font-size: 12.5px; color: var(--text); margin-bottom: 10px; }
+
+footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  text-align: center;
+}
+
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <h1>ENR Dashboard <span>Staff Reference — April 21, 2026 Virginia Referendum</span></h1>
+  <div class="sub">enr.vadems.org · auto-refresh every 60s · polls close 7:00 PM ET</div>
+</header>
+
+<!-- ───────────── TOP BANNER ───────────── -->
+<section>
+  <h2>Top Banner (Yes/No Bars)</h2>
+
+  <p>Two stacked bars across the top of the dashboard — Yes (blue) and No (red). Each bar has two portions:</p>
+
+  <div class="bar-row">
+    <strong>Solid blue/red</strong>
+    <span class="bar-demo"><span class="solid" style="width:40%"></span></span>
+    <span class="muted"> &larr; counted votes so far</span>
+  </div>
+  <div class="bar-row">
+    <strong>Faint extension</strong>
+    <span class="bar-demo"><span class="faint" style="width:40%"></span></span>
+    <span class="muted"> &larr; projected D/R outstanding ballots</span>
+  </div>
+
+  <h3>How the projection works</h3>
+  <p>The faint portion projects remaining absentee ballots onto Yes/No by party:</p>
+  <ul style="padding-left:20px;margin-top:5px;">
+    <li style="margin-bottom:4px"><strong style="color:var(--yes-lt)">Dem outstanding</strong> &rarr; assumed to vote Yes</li>
+    <li><strong style="color:var(--no-lt)">Rep outstanding</strong> &rarr; assumed to vote No</li>
+  </ul>
+
+  <div class="note">
+    <strong>This is an estimate, not a call.</strong> It assumes counted ballots have the same party composition as returned ballots, and that Democrats vote Yes / Republicans vote No on this amendment. Useful visual tool but not definitive.
+  </div>
+
+  <h3>Reading the percentages</h3>
+  <p>The <span class="mono">YES %</span> / <span class="mono">NO %</span> text labels show <strong>actual counted share only</strong> (Yes of Yes+No counted). They do NOT reflect the projection. The <em>bar</em> tells the projection story; the <em>number</em> tells the current standing.</p>
+</section>
+
+<!-- ───────────── STAT CARDS ───────────── -->
+<section>
+  <h2>Statewide Stat Cards</h2>
+
+  <div class="cols">
+    <div>
+      <div class="colkey">PRECINCTS REPORTING</div>
+      <div class="colval">How many of 2,534 precincts have posted Election Day votes. Climbs from 0 during the night.</div>
+
+      <div class="colkey">YES / NO VOTES &amp; %</div>
+      <div class="colval">Actual counted votes (all methods combined: EV + ED + MA + Provisional).</div>
+
+      <div class="colkey">REGISTERED</div>
+      <div class="colval">Active registered voters statewide (snapshot: March 1, 2026). Denominator for turnout.</div>
+
+      <div class="colkey">TURNOUT</div>
+      <div class="colval">Total votes / Registered. Rises as results come in.</div>
+    </div>
+    <div>
+      <div class="colkey">ABS. RETURNED</div>
+      <div class="colval">Absentee ballots already received by registrars (EV in-person + mail). Frozen at ~7 AM today when the absentee pipeline last ran: 1.37M.</div>
+
+      <div class="colkey">ABS. OUTSTANDING</div>
+      <div class="colval">Returned ballots <em>not yet counted</em> by ENR. Drops as EV and MA get posted tonight. Shows raw number + % of returned.</div>
+
+      <div class="colkey">EST: D / R</div>
+      <div class="colval">Party breakdown of outstanding, estimated by applying each locality's D/R mix of returned ballots. Sub-line beneath the outstanding number.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── STATUS CHIPS ───────────── -->
+<section>
+  <h2>Absentee Status Chips (Ab Status column)</h2>
+
+  <p>Each of the 133 localities gets a status chip indicating where they are in posting absentee. Derived from ELECT's <span class="mono">reportingStatuses</span> feed for each locality's Early Voting and Mailed Absentee methods.</p>
+
+  <div style="margin: 14px 0;">
+    <div style="margin-bottom: 10px;">
+      <span class="ab-chip not-reported">Not Reported</span>
+      <span class="muted">Default. Neither EV nor MA posted yet. <strong style="color:var(--text)">All 133 start here at 7 PM.</strong></span>
+    </div>
+    <div style="margin-bottom: 10px;">
+      <span class="ab-chip in-person-only">In-Person Only</span>
+      <span class="muted">EV posted, MA still pending. Common first transition (EV is machine-tabulated, posts fast).</span>
+    </div>
+    <div style="margin-bottom: 10px;">
+      <span class="ab-chip mailed-only">Mailed Only</span>
+      <span class="muted">MA posted first, EV still pending. Less common but possible (e.g., Fairfax bulk XML import).</span>
+    </div>
+    <div style="margin-bottom: 10px;">
+      <span class="ab-chip all-reported">All Reported</span>
+      <span class="muted">Both EV and MA posted (election-night complete). Absentee pool fully reflected in results.</span>
+    </div>
+    <div>
+      <span class="ab-chip final">Final</span>
+      <span class="muted">Both fully reported (canvassed). Typically reached in the days after — not tonight.</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Sort by the Ab Status column</strong> to see who's posted and who hasn't. Sorts in the progression above: Not Reported first, Final last. Click again to reverse.
+  </div>
+
+  <h3>Expected timing tonight</h3>
+  <p class="muted" style="font-size:12.5px;">Based on Nov 2025 change-log analysis:</p>
+  <ul style="padding-left:20px;margin-top:5px;font-size:12.5px;">
+    <li style="margin-bottom:4px">~7:00 PM &mdash; Polls close, chips all show <span class="ab-chip not-reported">Not Reported</span></li>
+    <li style="margin-bottom:4px">~7:30 PM &mdash; Earliest locality posts; first chip flips to <span class="ab-chip in-person-only">In-Person Only</span></li>
+    <li style="margin-bottom:4px">~8:30 PM &mdash; ~60% of localities should have <em>something</em> posted</li>
+    <li style="margin-bottom:4px">~10:00 PM &mdash; ~90%+ should be <span class="ab-chip all-reported">All Reported</span></li>
+    <li>Days later &mdash; Canvass completes, chips turn <span class="ab-chip final">Final</span></li>
+  </ul>
+</section>
+
+<!-- ───────────── LOCALITY TABLE ───────────── -->
+<section>
+  <h2>Locality Table Columns (Statewide View)</h2>
+
+  <div class="cols">
+    <div>
+      <div class="colkey">⭐ STAR</div>
+      <div class="colval">Click to "track" a locality. Use the "Show Tracked" button to filter just the ones you care about.</div>
+
+      <div class="colkey">LOCALITY</div>
+      <div class="colval">Click the name to drill into precinct-level detail for that locality.</div>
+
+      <div class="colkey">REPORTING</div>
+      <div class="colval">Precincts posted / total precincts in that locality. Reflects Election Day vote counts only.</div>
+
+      <div class="colkey">AB STATUS</div>
+      <div class="colval">Absentee reporting chip — see section above.</div>
+
+      <div class="colkey">YES / NO (counts + %)</div>
+      <div class="colval">Locality totals. Appear as dashes until that locality starts reporting.</div>
+
+      <div class="colkey">TOTAL VOTES</div>
+      <div class="colval">Yes + No + Other (provisional, etc.) for that locality.</div>
+
+      <div class="colkey">TURNOUT</div>
+      <div class="colval">Total votes / Registered voters in that locality.</div>
+    </div>
+    <div>
+      <div class="colkey">AB D% / AB R%</div>
+      <div class="colval">Party composition of <em>returned</em> absentee ballots (from VAN + DAL join).</div>
+
+      <div class="colkey">AB DEM EST / REP EST</div>
+      <div class="colval">Raw number of returned absentee ballots estimated as Dem / Rep (= AB Voted × party %).</div>
+
+      <div class="colkey">DEMPERF</div>
+      <div class="colval">NCEC Democratic Performance baseline — expected Dem two-way vote share for this locality.</div>
+
+      <div class="colkey">YES VS BASE</div>
+      <div class="colval">Yes % vs DemPerf. Positive = Yes running ahead of Dem baseline. Only shows once reporting.</div>
+
+      <div class="colkey">ABS. RETURNED</div>
+      <div class="colval">Total absentee ballots received by this locality (as of 7 AM today).</div>
+
+      <div class="colkey">ABS. OUTSTANDING</div>
+      <div class="colval">Returned but not yet counted by ENR. Drops as this locality posts EV / MA.</div>
+
+      <div class="colkey">D OUT EST / R OUT EST</div>
+      <div class="colval">Party breakdown of this locality's outstanding (using its specific D/R mix).</div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── DRILL-DOWN ───────────── -->
+<section>
+  <h2>Per-Locality Drill-Down</h2>
+
+  <p>Click any locality name to drill in. You'll see:</p>
+
+  <h3>Header stat row</h3>
+  <p style="font-size:12.5px;">Precincts reported, Yes/No counts, Yes %/Turnout (once reporting), Reg. Voters, Abs. Returned, and Abs. Outstanding (with D/R breakdown) — all for that locality only. Status chip appears inline next to the county name.</p>
+
+  <h3>Precinct table</h3>
+  <p style="font-size:12.5px;">Every precinct in that locality with its individual reporting status, Yes/No counts, turnout, and registered voter count. Click "&larr; Back to Statewide" to return.</p>
+</section>
+
+<!-- ───────────── KEY NUMBERS ───────────── -->
+<section>
+  <h2>Key Numbers &amp; Concepts</h2>
+
+  <h3>margin_vs_outstanding (summary.json)</h3>
+  <p style="font-size:12.5px;">Hidden field but the math is visible in the outstanding card. Formula: <span class="mono">|Yes - No| - Outstanding</span>.</p>
+  <ul style="padding-left:20px;margin-top:5px;font-size:12.5px;">
+    <li style="margin-bottom:4px"><strong style="color:var(--green)">Positive</strong> = Outstanding can't mathematically flip the result. Race is called.</li>
+    <li><strong style="color:var(--amber)">Negative</strong> = Outstanding exceeds the current margin. Race still in play.</li>
+  </ul>
+
+  <h3>Virtual precincts</h3>
+  <p style="font-size:12.5px;">Some localities use "virtual" precincts (e.g., <span class="mono">"CAP" = Central Absentee Precinct</span>) as catch-all buckets on election night. These hold EV/MA totals that get redistributed to real precincts during canvass. Flagged in the ENR feed with <span class="mono">isVirtual: true</span>.</p>
+
+  <h3>Why the absentee data froze at 7 AM</h3>
+  <p style="font-size:12.5px;">The absentee pipeline (<span class="mono">counties.json</span>) runs once per morning from the VAN → DAL join. ENR updates continuously. So "Abs. Returned" stays flat all day; "Abs. Outstanding" drops as ENR posts EV/MA counts.</p>
+</section>
+
+<!-- ───────────── OPERATOR TIPS ───────────── -->
+<section>
+  <h2>Tonight's Operator Tips</h2>
+
+  <h3>What to watch for</h3>
+  <ul style="padding-left:20px;font-size:12.5px;">
+    <li style="margin-bottom:6px"><strong>Fairfax County</strong> — bulk XML import, typically posts all absentee at once around 7:30-8:00 PM. Big swing in numbers when it lands.</li>
+    <li style="margin-bottom:6px"><strong>First reporting locality</strong> — click on it, look at its Yes % vs DemPerf (Yes vs Base column). Early indicator of direction.</li>
+    <li style="margin-bottom:6px"><strong>Stuck "Not Reported" after 9 PM</strong> — flag for the ELECT team; may indicate locality reporting issues.</li>
+    <li style="margin-bottom:6px"><strong>Close race check</strong> — compare <span class="mono">|Yes - No|</span> to Abs. Outstanding. If outstanding exceeds margin, race is still in play regardless of % counted.</li>
+  </ul>
+
+  <h3>If the dashboard looks wrong</h3>
+  <ul style="padding-left:20px;font-size:12.5px;">
+    <li style="margin-bottom:4px">Hard refresh the browser (<span class="mono">Ctrl+F5</span> or <span class="mono">Cmd+Shift+R</span>)</li>
+    <li style="margin-bottom:4px">Check the top-right "Results:" timestamp — if it's more than 5 min old, the pipeline may have hung</li>
+    <li style="margin-bottom:4px">Check <span class="mono">metadata.json</span> in the repo — <span class="mono">last_updated</span> field</li>
+  </ul>
+
+  <div class="warning">
+    <strong>Remember:</strong> The "margin_vs_outstanding" math assumes outstanding ballots split the same way as currently-counted ballots. If EV breaks heavily one direction and MA breaks the opposite, early projections can mislead. Wait for several rounds of updates before making calls.
+  </div>
+</section>
+
+<footer>
+  April 21, 2026 — DPVA Data &amp; Technology · Dashboard by Brenner Tobe
+</footer>
+
+</div>
+</body>
+</html>
