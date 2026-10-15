@@ -2,51 +2,625 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Virginia Election Results</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+/* Layout: sticky header + statewide strip, three tabs (Statewide / Congress / Local),
+   results cards above a sortable locality table; locality drill-down opens in a right drawer.
+   DPVA dark theme (shared with absentee / cure / ENR April) — single committed dark look. */
 :root {
-  --bg:          #0f1117;
-  --surface:     #1a1d27;
-  --border:      #2a2d3a;
-  --text:        #e8eaf0;
-  --text-muted:  #8890a8;
-  --accent:      #3a8fd4;
-  --radius:      6px;
-  --font:        'DM Sans', system-ui, sans-serif;
+  color-scheme: dark;
+  --bg:        #0f1117;
+  --surface:   #1a1d27;
+  --surface2:  #20243a;
+  --border:    #2a2d3a;
+  --border2:   #353a50;
+  --text:      #e8eaf0;
+  --muted:     #8890a8;
+  --accent:    #3a8fd4;
+  --accent-bg: rgba(58,143,212,.12);
+  /* party / option colors */
+  --dem:       #3d82d4;
+  --rep:       #d24a3c;
+  --oth:       #9a83c9;
+  --wi:        #596079;
+  --np:        #6f9fbf;
+  /* status */
+  --green:     #2fb36b;
+  --amber:     #f0a500;
+  --radius:    6px;
+  --font:      'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:      'DM Mono', ui-monospace, Consolas, monospace;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; }
-main { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
-h1 { font-size: 24px; font-weight: 600; margin-bottom: 6px; }
-h1 span { color: var(--accent); }
-.sub { color: var(--text-muted); margin-bottom: 32px; }
-.card { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px; color: var(--text); text-decoration: none; }
-a.card:hover { border-color: var(--accent); }
-.card .t { font-weight: 600; margin-bottom: 4px; }
-.card .d { color: var(--text-muted); font-size: 13px; }
-h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin: 28px 0 10px; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; }
+body { min-height: 100%; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* ── Header ─────────────────────────────── */
+#top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--border); }
+#hdr { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
+#hdr h1 { margin: 0; font-size: 15px; font-weight: 600; flex: 1; min-width: 220px; }
+#hdr h1 span { color: var(--accent); }
+#hdr .meta { display: flex; gap: 14px; font-size: 12px; color: var(--muted); font-family: var(--mono); flex-wrap: wrap; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 5px; animation: pulse 2s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
+#mock { background: var(--amber); color: #15161c; font-weight: 600; font-size: 12.5px; text-align: center; padding-block: 5px; }
+
+/* ── Statewide strip ────────────────────── */
+#strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+#strip .k { background: var(--surface); padding: 8px 14px 9px; min-width: 0; }
+#strip .k .l { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+#strip .k .v { font-size: 17px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
+#strip .k .s { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+.prog { height: 4px; background: var(--border2); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+
+/* ── Tabs ───────────────────────────────── */
+#tabs { display: flex; gap: 2px; border-top: 1px solid var(--border); overflow-x: auto; }
+#tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 14px 9px; color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; }
+#tabs button:hover { color: var(--text); }
+#tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+#tabs .count { font-family: var(--mono); font-weight: 400; font-size: 11px; color: var(--muted); margin-left: 6px; }
+
+main { padding-block: 18px 40px; display: flex; flex-direction: column; gap: 18px; max-width: 1400px; margin: 0 auto; }
+h2 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* ── Cards & results ─────────────────────── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.card.sel { border-color: var(--accent); }
+.card h3 { margin: 0; font-size: 15px; font-weight: 600; text-wrap: balance; }
+.card .sub { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; }
+.grid-sw { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 860px) { .grid-sw { grid-template-columns: minmax(0, 1fr); } }
+.stack { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+.res { display: flex; flex-direction: column; gap: 9px; margin-top: 12px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 12px; align-items: baseline; }
+.row .nm { font-size: 13.5px; font-weight: 500; overflow-wrap: anywhere; }
+.row.lead .nm { font-weight: 700; }
+.row .pt { font-size: 10.5px; font-weight: 600; letter-spacing: .04em; color: var(--muted); margin-left: 6px; }
+.row .vt { font-size: 12.5px; color: var(--muted); text-align: right; }
+.row .pc { font-size: 14px; font-weight: 600; text-align: right; min-width: 52px; }
+.row .bar { grid-column: 1 / -1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.row .bar i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.big .row .nm { font-size: 16px; }
+.big .row .pc { font-size: 20px; }
+.big .row .bar { height: 12px; }
+.margin { font-size: 12px; margin-top: 10px; color: var(--muted); }
+.margin b { color: var(--text); font-weight: 600; }
+
+/* split bar (Yes/No, D/R tiles) */
+.split { display: flex; height: 10px; border-radius: 3px; overflow: hidden; gap: 2px; background: var(--surface2); margin-top: 8px; }
+.split i { display: block; height: 100%; }
+.split-lab { display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; gap: 8px; }
+
+/* CD tiles */
+.cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(215px, 100%), 1fr)); gap: 10px; }
+.cd { text-align: left; cursor: pointer; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 13px; transition: border-color .12s, background .12s; }
+.cd:hover { background: var(--surface2); }
+.cd[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-bg); }
+.cd .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.cd .t b { font-size: 14px; }
+.cd .t span { font-size: 11px; color: var(--muted); }
+.cd .who { display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; gap: 8px; }
+.cd .who span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* party tags & status chips */
+.tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border2); white-space: nowrap; color: var(--muted); }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chip.st-not-reported   { color: var(--muted); }
+.chip.st-in-person-only { color: #e0b44f; border-color: rgba(224,180,79,.35); }
+.chip.st-mailed-only    { color: #d79a5c; border-color: rgba(215,154,92,.35); }
+.chip.st-all-reported   { color: var(--accent); border-color: rgba(58,143,212,.4); }
+.chip.st-final          { color: var(--green); border-color: rgba(47,179,107,.4); }
+
+/* ── Tables ─────────────────────────────── */
+.tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+input[type="search"], select { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); color: var(--text); padding: 6px 10px; font: inherit; font-size: 12.5px; min-width: 0; }
+input[type="search"] { width: 220px; max-width: 100%; }
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th, td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; background: var(--surface); position: sticky; top: 0; cursor: pointer; user-select: none; }
+th[aria-sort] { color: var(--text); }
+th[aria-sort="ascending"]::after { content: " ▲"; font-size: 8px; }
+th[aria-sort="descending"]::after { content: " ▼"; font-size: 8px; }
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: var(--surface2); }
+td.c { text-align: center; }
+td .lead { font-weight: 600; }
+.mini { display: inline-block; width: 64px; height: 6px; background: var(--surface2); border-radius: 3px; vertical-align: middle; margin-right: 6px; overflow: hidden; }
+.mini i { display: block; height: 100%; background: var(--accent); }
+.dlt.pos { color: #7fb2ea; }
+.dlt.neg { color: #e88a7f; }
+
+/* ── Local tab ──────────────────────────── */
+.local { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 760px) { .local { grid-template-columns: minmax(0, 1fr); } }
+.loclist { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; max-height: 70vh; min-width: 0; }
+.loclist .h { padding: 10px; border-bottom: 1px solid var(--border); }
+.loclist .h input { width: 100%; }
+.loclist ul { list-style: none; margin: 0; padding: 4px 0; overflow-y: auto; }
+.loclist li button { width: 100%; text-align: left; background: none; border: 0; padding: 7px 12px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
+.loclist li button:hover { background: var(--surface2); }
+.loclist li button[aria-current="true"] { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+.loclist li .n { font-family: var(--mono); color: var(--muted); font-size: 11px; }
+@media (max-width: 760px) { .loclist { max-height: 260px; } }
+.contest-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; }
+.card .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 8px; flex-wrap: wrap; }
+.btn { background: transparent; border: 1px solid var(--border2); border-radius: var(--radius); padding: 5px 10px; font-size: 12px; cursor: pointer; color: var(--text); }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Drawer ─────────────────────────────── */
+#scrim { position: fixed; inset: 0; background: rgba(5,6,10,.55); z-index: 40; }
+#drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100%); background: var(--bg); border-left: 1px solid var(--border2); z-index: 41; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
+#drawer .dh { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+#drawer .dh h3 { margin: 0; font-size: 17px; }
+#drawer .dh .x { margin-left: auto; background: none; border: 1px solid var(--border2); border-radius: var(--radius); width: 32px; height: 32px; cursor: pointer; font-size: 16px; flex-shrink: 0; }
+#drawer .db { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.kv > div { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; }
+.kv > div > .l { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.kv > div > .v { font-size: 15px; font-weight: 600; margin-top: 2px; }
+.note { font-size: 12px; color: var(--muted); }
+.empty { padding: 28px; text-align: center; color: var(--muted); }
+.warn { border: 1px solid rgba(240,165,0,.45); background: rgba(240,165,0,.09); color: #f3c766; border-radius: var(--radius); padding: 9px 12px; font-size: 12.5px; line-height: 1.45; }
+.warn b { color: var(--amber); }
+tr.cap td { background: rgba(240,165,0,.06); }
+[hidden] { display: none !important; }
 </style>
 </head>
 <body>
-<main>
-  <h1>Virginia <span>Election Results</span></h1>
-  <p class="sub">DPVA Data &amp; Technology</p>
 
-  <h2>Upcoming</h2>
-  <div class="card">
-    <div class="t">November 3, 2026 — General Election</div>
-    <div class="d">U.S. Senate, Congressional Districts 1–11, constitutional amendments, local contests. Live results on election night.</div>
+<div id="top">
+  <div id="mock" class="wrap" hidden>Mock data: synthetic votes for layout review, not real results</div>
+  <div id="hdr" class="wrap">
+    <h1>Virginia <span>Election Results</span> · November 3, 2026 General</h1>
+    <div class="meta"><span><i class="dot"></i>Updated <b id="m-upd">—</b></span><span>ENR <b id="m-enr">—</b></span><span>Refresh in <b id="m-cd">60</b>s</span><a href="archive/2026-04-referendum/" style="color:var(--muted)">April 2026 referendum →</a></div>
   </div>
+  <div id="strip"></div>
+  <nav id="tabs" class="wrap" role="tablist" aria-label="Result views">
+    <button role="tab" id="tab-statewide" data-tab="statewide" aria-selected="true">Statewide</button>
+    <button role="tab" id="tab-congress" data-tab="congress" aria-selected="false">Congress<span class="count">CD 1–11</span></button>
+    <button role="tab" id="tab-local" data-tab="local" aria-selected="false">Local<span class="count" id="local-count"></span></button>
+  </nav>
+</div>
 
-  <h2>Archive</h2>
-  <a class="card" href="archive/2026-04-referendum/">
-    <div class="t">April 21, 2026 — Special Election (Constitutional Amendment)</div>
-    <div class="d">Final results by locality and precinct.</div>
-  </a>
-</main>
+<main class="wrap" id="view"></main>
+
+<div id="scrim" hidden></div>
+<aside id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title">
+  <div class="dh">
+    <div style="min-width:0">
+      <h3 id="d-title">—</h3>
+      <div class="sub" id="d-sub" style="font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
+    </div>
+    <button class="x" id="d-close" aria-label="Close">✕</button>
+  </div>
+  <div class="db" id="d-body"></div>
+</aside>
+
+<script>
+"use strict";
+const DATA = "data/";
+const REFRESH_S = 60;
+const GROUPS = [["ev", "Early"], ["ed", "Election Day"], ["mail", "Mail"], ["prov", "Provisional"], ["post", "Post-Election"]];
+const AB_LABEL = { "not-reported": "Absentee not in", "in-person-only": "Early in", "mailed-only": "Mail in", "all-reported": "Absentee in", "final": "Final" };
+const ORD = ["", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th"];
+
+const S = { tab: "statewide", swContest: "cc142", cd: 7, localFips: null, sort: {}, q: {}, precCache: {} };
+let D = null;   // { summary, contests, localities, metadata, byId, locByFips }
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = n => n == null ? "—" : Number(n).toLocaleString("en-US");
+const fp = (n, d = 1) => n == null || isNaN(n) ? "—" : Number(n).toFixed(d) + "%";
+const sum = a => a.reduce((x, y) => x + y, 0);
+const title = s => s.toLowerCase().replace(/\b([a-z])/g, m => m.toUpperCase()).replace(/\bOf\b/g, "of").replace(/\bAnd\b/g, "and");
+
+function partyKey(o) {
+  if (o.name === "Yes") return "dem";
+  if (o.name === "No") return "rep";
+  if (o.party === "Democratic") return "dem";
+  if (o.party === "Republican") return "rep";
+  if (/write-?in/i.test(o.name)) return "wi";
+  return o.party ? "oth" : "np";
+}
+const pcolor = o => `var(--${partyKey(o)})`;
+function ptag(o) {
+  if (!o.party) return "";
+  const ab = { Democratic: "DEM", Republican: "REP", Independent: "IND", Libertarian: "LIB", Green: "GRN" }[o.party] || o.party.slice(0, 3).toUpperCase();
+  return `<span class="pt">${ab}</span>`;
+}
+function shortName(n) {
+  const p = n.replace(/"[^"]*"/g, "").replace(/,?\s+(Jr\.?|Sr\.?|II|III|IV)$/i, "").trim().split(/\s+/);
+  return p[p.length - 1];
+}
+function contestTitle(c) {
+  if (c.scope === "Congressional") return `${ORD[c.district]} District · U.S. House`;
+  if (c.id === "cc142") return "U.S. Senate";
+  if (c.scope === "HouseOfDelegates") return `House of Delegates · ${c.district}th District (special)`;
+  const m = c.name.match(/^Proposed Constitutional Amendment Question (\d)/);
+  if (m) return `Constitutional Amendment ${m[1]}`;
+  return c.name;
+}
+const partisan = c => c.options.some(o => o.party === "Democratic") && c.options.some(o => o.party === "Republican");
+const optIdx = (c, party) => c.options.findIndex(o => o.party === party);
+
+/* ── Data ─────────────────────────────────────────────── */
+async function load() {
+  const t = Date.now();
+  const get = f => fetch(`${DATA}${f}?t=${t}`).then(r => { if (!r.ok) throw new Error(`${f}: ${r.status}`); return r.json(); });
+  const [summary, contests, localities, metadata] = await Promise.all(
+    ["summary.json", "contests.json", "localities.json", "metadata.json"].map(get));
+  D = { summary, contests, localities, metadata,
+        byId: Object.fromEntries(contests.map(c => [c.id, c])),
+        locByFips: Object.fromEntries(localities.map(l => [l.fips, l])) };
+  S.precCache = {};
+}
+async function precincts(fips) {
+  if (!S.precCache[fips]) {
+    S.precCache[fips] = fetch(`${DATA}precincts/${fips}.json?t=${Date.now()}`).then(r => r.json());
+  }
+  return S.precCache[fips];
+}
+
+/* ── Shared pieces ────────────────────────────────────── */
+function resultRows(c, votes, opts = {}) {
+  const total = sum(votes);
+  const order = c.options.map((o, i) => i).filter(i => !(opts.hideZeroWriteIn && partyKey(c.options[i]) === "wi" && votes[i] === 0));
+  order.sort((a, b) => votes[b] - votes[a]);
+  const lead = total ? order[0] : -1;
+  return `<div class="res">` + order.map(i => {
+    const o = c.options[i], p = total ? votes[i] / total * 100 : 0;
+    return `<div class="row${i === lead ? " lead" : ""}">
+      <div class="nm">${esc(o.name)}${ptag(o)}</div>
+      <div class="vt num">${fmt(votes[i])}</div>
+      <div class="pc num">${total ? p.toFixed(1) + "%" : "—"}</div>
+      <div class="bar"><i style="width:${p}%;background:${pcolor(o)}"></i></div></div>`;
+  }).join("") + `</div>`;
+}
+function marginLine(c, votes) {
+  const total = sum(votes);
+  if (!total) return `<div class="margin">No votes reported yet</div>`;
+  const ix = votes.map((v, i) => i).sort((a, b) => votes[b] - votes[a]);
+  const m = votes[ix[0]] - (ix.length > 1 ? votes[ix[1]] : 0);
+  return `<div class="margin"><b>${esc(shortName(c.options[ix[0]].name))}</b> leads by <b class="num">${fmt(m)}</b> votes (${(m / total * 100).toFixed(1)} pts)</div>`;
+}
+const chip = st => `<span class="chip st-${st}">${AB_LABEL[st] || st}</span>`;
+function reportingSub(part, rep) {
+  return `<span class="num">${fmt(rep)}/${fmt(part)} precincts</span><span class="num">${fp(part ? rep / part * 100 : 0, 0)} reporting</span>`;
+}
+
+/* ── Strip ────────────────────────────────────────────── */
+function renderStrip() {
+  const s = D.summary;
+  const counts = ["not-reported", "in-person-only", "mailed-only", "all-reported", "final"]
+    .map(k => [k, s["n_" + k.replace(/-/g, "_")]]).filter(([, n]) => n);
+  $("#strip").innerHTML = `
+    <div class="k"><div class="l">Precincts reporting</div><div class="v num">${fp(s.pct_reporting)}</div>
+      <div class="s num">${fmt(s.precincts_rep)} of ${fmt(s.precincts_part)}</div><div class="prog"><i style="width:${s.pct_reporting}%"></i></div></div>
+    <div class="k"><div class="l">Votes counted</div><div class="v num">${fmt(s.total)}</div>
+      <div class="s">U.S. Senate · ${fp(s.turnout_pct)} of active voters*</div></div>
+    <div class="k"><div class="l">Absentee returned</div><div class="v num">${fmt(s.ab_voted)}</div>
+      <div class="s">${fmt(s.ab_issued)} issued</div></div>
+    <div class="k"><div class="l">Absentee not yet counted</div><div class="v num">${fmt(s.ab_outstanding)}</div>
+      <div class="s num">est. <span style="color:var(--dem)">D ${fmt(s.ab_dem_outstanding)}</span> · <span style="color:var(--rep)">R ${fmt(s.ab_rep_outstanding)}</span></div></div>
+    <div class="k"><div class="l">Absentee status · 133 localities</div>
+      <div class="chips">${counts.map(([k, n]) => `<span class="chip st-${k}">${AB_LABEL[k]} <b class="num">${n}</b></span>`).join("")}</div>
+      ${s.n_cap_pending ? `<div class="s" style="margin-top:4px">${s.n_cap_pending} still holding absentee in a central precinct</div>` : ""}</div>`;
+  const m = D.metadata;
+  $("#m-upd").textContent = m.last_updated || "—";
+  $("#m-enr").textContent = m.enr_created_at ? new Date(m.enr_created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "—";
+  $("#mock").hidden = !m.mock;
+  const nLocal = D.localities.filter(l => localContests(l).length).length;
+  $("#local-count").textContent = `${nLocal} localities`;
+}
+
+/* ── Locality table (statewide + congress) ────────────── */
+function locRows(c, cdKey) {
+  const dI = optIdx(c, "Democratic"), rI = optIdx(c, "Republican");
+  return D.localities.filter(l => l.contests[c.id]).map(l => {
+    const lc = l.contests[c.id], tot = lc.total;
+    const ix = lc.v.map((v, i) => i).sort((a, b) => lc.v[b] - lc.v[a]);
+    const lead = tot ? ix[0] : -1;
+    const marg = tot ? (lc.v[ix[0]] - (ix.length > 1 ? lc.v[ix[1]] : 0)) / tot * 100 : null;
+    const dem = dI >= 0 && tot ? lc.v[dI] / tot * 100 : null;
+    const ab = cdKey ? (l.cds[cdKey] || {}) : l;
+    return {
+      l, fips: l.fips, name: title(l.name), rep: lc.part ? lc.rep / lc.part * 100 : 0, part: lc.part, nrep: lc.rep,
+      st: l.absentee_state, lead, marg, dem, tot,
+      vsModel: dem != null && l.ncec_demperf != null && dI >= 0 && rI >= 0 ? dem - l.ncec_demperf : null,
+      abOut: ab.ab_outstanding ?? null,
+      turn: cdKey || !tot ? null : l.turnout_pct,
+    };
+  });
+}
+function locTable(c, key, cdKey) {
+  const isP = partisan(c), isM = c.type === "BallotMeasure";
+  const cols = [
+    ["name", "Locality"], ["rep", "Reporting"], ["st", "Absentee"], ["lead", "Leader"], ["marg", "Margin"],
+    ...(isP ? [["dem", "Dem %"], ["vsModel", "vs NCEC"]] : []),
+    ...(isM ? [["dem", "Yes %"]] : []),
+    ["tot", "Votes"], ...(cdKey ? [] : [["turn", "Turnout*"]]), ["abOut", "Abs. not counted"],
+  ];
+  let rows = locRows(c, cdKey);
+  if (isM) rows.forEach(r => { const lc = r.l.contests[c.id]; r.dem = r.tot ? lc.v[0] / r.tot * 100 : null; });
+  const q = (S.q[key] || "").toLowerCase();
+  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  const so = S.sort[key] || { k: "tot", d: -1 };
+  rows.sort((a, b) => {
+    let x = a[so.k], y = b[so.k];
+    if (so.k === "lead") { x = a.lead >= 0 ? c.options[a.lead].name : ""; y = b.lead >= 0 ? c.options[b.lead].name : ""; }
+    if (x == null && y == null) return a.name.localeCompare(b.name);
+    if (x == null) return 1; if (y == null) return -1;
+    return (typeof x === "string" ? x.localeCompare(y) : x - y) * so.d || a.name.localeCompare(b.name);
+  });
+  const th = cols.map(([k, lab]) => `<th data-k="${k}" ${so.k === k ? `aria-sort="${so.d > 0 ? "ascending" : "descending"}"` : ""}>${lab}</th>`).join("");
+  const td = rows.map(r => {
+    const lo = r.lead >= 0 ? c.options[r.lead] : null;
+    return `<tr data-fips="${r.fips}">` + cols.map(([k]) => {
+      switch (k) {
+        case "name": return `<td><b>${esc(r.name)}</b></td>`;
+        case "rep": return `<td class="num"><span class="mini"><i style="width:${r.rep}%"></i></span>${r.nrep}/${r.part}</td>`;
+        case "st": return `<td class="c">${chip(r.st)}</td>`;
+        case "lead": return `<td>${lo ? `<span class="tag" style="background:${pcolor(lo)};color:#fff">${esc(isM ? lo.name : shortName(lo.name))}</span>` : "—"}</td>`;
+        case "marg": return `<td class="num">${r.marg == null ? "—" : "+" + r.marg.toFixed(1)}</td>`;
+        case "dem": return `<td class="num">${fp(r.dem)}</td>`;
+        case "vsModel": return `<td class="num dlt ${r.vsModel > 0 ? "pos" : r.vsModel < 0 ? "neg" : ""}">${r.vsModel == null ? "—" : (r.vsModel > 0 ? "+" : "") + r.vsModel.toFixed(1)}</td>`;
+        case "tot": return `<td class="num">${fmt(r.tot)}</td>`;
+        case "turn": return `<td class="num">${fp(r.turn)}</td>`;
+        case "abOut": return `<td class="num">${fmt(r.abOut)}</td>`;
+      }
+    }).join("") + `</tr>`;
+  }).join("");
+  return `<div class="tbl-wrap"><table data-key="${key}" data-cid="${c.id}"><thead><tr>${th}</tr></thead><tbody>${td || `<tr><td colspan="${cols.length}" class="empty">No matching localities</td></tr>`}</tbody></table></div>`;
+}
+
+/* ── Statewide tab ────────────────────────────────────── */
+function renderStatewide() {
+  const sen = D.byId.cc142;
+  const amends = D.contests.filter(c => c.scope === "Statewide" && c.type === "BallotMeasure");
+  const hd = D.contests.filter(c => c.scope === "HouseOfDelegates" || c.scope === "StateSenate");
+  const swList = [sen, ...amends];
+  const cur = D.byId[S.swContest] || sen;
+  const amendCard = c => {
+    const t = c.total, y = c.options[0].votes, n = c.options[1].votes;
+    return `<div class="card${c.id === cur.id ? " sel" : ""}"><h3>${contestTitle(c)}</h3>
+      <div class="sub">${reportingSub(c.precincts_part, c.precincts_rep)}</div>
+      <div class="split">${t ? `<i style="width:${y / t * 100}%;background:var(--dem)"></i><i style="flex:1;background:var(--rep)"></i>` : ""}</div>
+      <div class="split-lab num"><span><b>Yes</b> ${fp(t ? y / t * 100 : null)} · ${fmt(y)}</span><span>${fmt(n)} · ${fp(t ? n / t * 100 : null)} <b>No</b></span></div></div>`;
+  };
+  $("#view").innerHTML = `
+    <div class="grid-sw">
+      <div class="card big${cur.id === sen.id ? " sel" : ""}">
+        <h3>U.S. Senate</h3><div class="sub">${reportingSub(sen.precincts_part, sen.precincts_rep)}</div>
+        ${resultRows(sen, sen.options.map(o => o.votes))}${marginLine(sen, sen.options.map(o => o.votes))}
+      </div>
+      <div class="stack">${amends.map(amendCard).join("")}
+        ${hd.map(c => `<div class="card"><h3>${contestTitle(c)}</h3><div class="sub">${reportingSub(c.precincts_part, c.precincts_rep)} · ${c.localities.length} localities</div>${resultRows(c, c.options.map(o => o.votes), { hideZeroWriteIn: true })}</div>`).join("")}
+      </div>
+    </div>
+    <section class="stack">
+      <div class="sec-head"><h2>By locality</h2>
+        <div class="tools">
+          <label class="muted" for="sw-contest" style="font-size:12px">Contest</label>
+          <select id="sw-contest">${swList.map(c => `<option value="${c.id}"${c.id === cur.id ? " selected" : ""}>${contestTitle(c)}</option>`).join("")}</select>
+          <input type="search" id="q-sw" placeholder="Find a locality" value="${esc(S.q.sw || "")}" aria-label="Find a locality">
+        </div></div>
+      <div id="tbl-sw">${locTable(cur, "sw")}</div>
+      <p class="note">Click a locality for precinct results. *Turnout uses the March 1, 2026 registration snapshot. "vs NCEC" is Dem share minus the NCEC 2026 Dem performance model. Absentee not counted = returned absentee ballots minus early, mail and post-election votes reported.</p>
+    </section>`;
+  $("#sw-contest").onchange = e => { S.swContest = e.target.value; renderStatewide(); };
+  bindSearch("#q-sw", "sw", () => $("#tbl-sw").innerHTML = locTable(cur, "sw"));
+}
+
+/* ── Congress tab ─────────────────────────────────────── */
+function renderCongress() {
+  const cds = D.contests.filter(c => c.scope === "Congressional");
+  const c = cds.find(x => x.district === S.cd) || cds[0];
+  const tile = x => {
+    const dI = optIdx(x, "Democratic"), rI = optIdx(x, "Republican");
+    const d = dI >= 0 ? x.options[dI] : null, r = rI >= 0 ? x.options[rI] : null;
+    const t = x.total || 0;
+    const other = t - (d ? d.votes : 0) - (r ? r.votes : 0);
+    return `<button class="cd" data-cd="${x.district}" aria-pressed="${x.district === c.district}">
+      <div class="t"><b>CD ${x.district}</b><span class="num">${fp(x.pct_reporting, 0)} in</span></div>
+      <div class="split">${t ? `<i style="width:${d ? d.votes / t * 100 : 0}%;background:var(--dem)"></i><i style="width:${other / t * 100}%;background:var(--oth)"></i><i style="flex:1;background:var(--rep)"></i>` : ""}</div>
+      <div class="who num"><span style="color:#8db8ea">${d ? esc(shortName(d.name)) + " " + fp(d.pct) : "—"}</span><span style="color:#ec9a90">${r ? fp(r.pct) + " " + esc(shortName(r.name)) : "—"}</span></div>
+    </button>`;
+  };
+  const cdKey = String(c.district);
+  const abOut = sum(D.localities.map(l => (l.cds[cdKey] || {}).ab_outstanding || 0));
+  $("#view").innerHTML = `
+    <section class="stack"><h2>Congressional districts</h2><div class="cd-grid">${cds.map(tile).join("")}</div></section>
+    <div class="grid-sw">
+      <div class="card big sel"><h3>${contestTitle(c)}</h3>
+        <div class="sub">${reportingSub(c.precincts_part, c.precincts_rep)}<span>${c.localities.length} localities</span></div>
+        ${resultRows(c, c.options.map(o => o.votes))}${marginLine(c, c.options.map(o => o.votes))}</div>
+      <div class="card"><h3>Vote method</h3><div class="sub">Share of each candidate's votes by how they were cast</div>
+        ${methodTable(c, c.options.map(o => GROUPS.map(([g]) => o[g])))}
+        <div class="kv" style="margin-top:12px"><div><div class="l">Absentee not counted</div><div class="v num">${fmt(abOut)}</div></div>
+          <div><div class="l">Localities</div><div class="v num">${c.localities.length}</div></div></div></div>
+    </div>
+    <section class="stack">
+      <div class="sec-head"><h2>Localities in CD ${c.district}</h2>
+        <div class="tools"><input type="search" id="q-cd" placeholder="Find a locality" value="${esc(S.q.cd || "")}" aria-label="Find a locality"></div></div>
+      <div id="tbl-cd">${locTable(c, "cd", cdKey)}</div>
+      <p class="note">Split localities show only their precincts in this district, and absentee counts only voters assigned to CD ${c.district}.</p>
+    </section>`;
+  document.querySelectorAll(".cd").forEach(b => b.onclick = () => { S.cd = +b.dataset.cd; setHash(); renderCongress(); });
+  bindSearch("#q-cd", "cd", () => $("#tbl-cd").innerHTML = locTable(c, "cd", cdKey));
+}
+function methodTable(c, perOpt) {
+  // perOpt[i] = votes by GROUPS order for option i
+  const used = GROUPS.map((g, gi) => gi).filter(gi => perOpt.some(r => r[gi]));
+  if (!used.length) return `<p class="note">No votes reported yet.</p>`;
+  const opts = c.options.map((o, i) => i).filter(i => sum(perOpt[i]) > 0);
+  return `<div class="tbl-wrap" style="margin-top:10px"><table class="static"><thead><tr><th>Candidate</th>${used.map(gi => `<th>${GROUPS[gi][1]}</th>`).join("")}<th>Total</th></tr></thead><tbody>` +
+    opts.map(i => `<tr><td><span class="tag" style="background:${pcolor(c.options[i])};color:#fff">${esc(c.type === "BallotMeasure" ? c.options[i].name : shortName(c.options[i].name))}</span></td>${used.map(gi => `<td class="num">${fmt(perOpt[i][gi])}</td>`).join("")}<td class="num"><b>${fmt(sum(perOpt[i]))}</b></td></tr>`).join("") +
+    `</tbody></table></div>`;
+}
+
+/* ── Local tab ────────────────────────────────────────── */
+function localContests(l) {
+  return Object.keys(l.contests).map(id => D.byId[id]).filter(c => c && c.scope === "Local");
+}
+function renderLocal() {
+  const locs = D.localities.map(l => ({ l, n: localContests(l).length })).filter(x => x.n).sort((a, b) => a.l.name.localeCompare(b.l.name));
+  if (!S.localFips || !locs.some(x => x.l.fips === S.localFips)) S.localFips = locs[0]?.l.fips;
+  const l = D.locByFips[S.localFips];
+  const cs = localContests(l).sort((a, b) => (a.type === b.type ? 0 : a.type === "Candidate" ? -1 : 1) || (a.ballot_order || 0) - (b.ballot_order || 0));
+  const q = (S.q.loc || "").toLowerCase();
+  $("#view").innerHTML = `
+    <div class="local">
+      <nav class="loclist" aria-label="Localities with local contests">
+        <div class="h"><input type="search" id="q-loc" placeholder="Find a county or city" value="${esc(S.q.loc || "")}" aria-label="Find a county or city"></div>
+        <ul>${locs.filter(x => !q || x.l.name.toLowerCase().includes(q)).map(x => `<li><button data-fips="${x.l.fips}" aria-current="${x.l.fips === S.localFips}"><span>${esc(title(x.l.name))}</span><span class="n">${x.n}</span></button></li>`).join("")}</ul>
+      </nav>
+      <section class="stack">
+        <div class="sec-head"><div><h3 style="margin:0;font-size:18px">${esc(title(l.name))}</h3>
+          <div class="sub" style="font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">${chip(l.absentee_state)}<span class="num">${l.precincts_rep}/${l.precincts_part} precincts</span><span>${cs.length} local contests</span></div></div>
+          <button class="btn" data-open="${l.fips}">All precincts →</button></div>
+        <div class="contest-grid">${cs.map(c => {
+          const lc = l.contests[c.id];
+          const multi = c.localities.length > 1 ? `<span>Also in ${c.localities.filter(f => f !== l.fips).map(f => title(D.locByFips[f].name)).join(", ")}</span>` : "";
+          return `<div class="card"><h3>${esc(c.name)}</h3>
+            <div class="sub">${c.vote_for > 1 ? `<span>Vote for ${c.vote_for}</span>` : ""}<span class="num">${lc.rep}/${lc.part} precincts</span>${multi}</div>
+            ${resultRows(c, lc.v, { hideZeroWriteIn: true })}
+            <div class="foot"><span class="note num">${fmt(lc.total)} votes</span><button class="btn" data-open="${l.fips}" data-cid="${c.id}">By precinct →</button></div></div>`;
+        }).join("")}</div>
+      </section>
+    </div>`;
+  document.querySelectorAll(".loclist button").forEach(b => b.onclick = () => { S.localFips = b.dataset.fips; renderLocal(); });
+  const qi = $("#q-loc");
+  qi.oninput = () => { S.q.loc = qi.value; const pos = qi.selectionStart; renderLocal(); const n = $("#q-loc"); n.focus(); n.setSelectionRange(pos, pos); };
+}
+
+/* ── Drawer: locality detail ──────────────────────────── */
+async function openLocality(fips, cid) {
+  const l = D.locByFips[fips];
+  const ids = Object.keys(l.contests).map(id => D.byId[id]);
+  const rank = { Statewide: 0, Congressional: 1, StateSenate: 2, HouseOfDelegates: 3, Local: 4 };
+  ids.sort((a, b) => rank[a.scope] - rank[b.scope] || (a.ballot_order || 0) - (b.ballot_order || 0));
+  let cur = D.byId[cid] && l.contests[cid] ? D.byId[cid] : ids[0];
+  $("#d-title").textContent = title(l.name);
+  $("#d-sub").innerHTML = `${chip(l.absentee_state)}<span class="num">${l.precincts_rep}/${l.precincts_part} precincts</span><span class="num">FIPS ${l.fips}</span>`;
+  $("#scrim").hidden = false; $("#drawer").hidden = false; $("#d-close").focus();
+  const body = $("#d-body");
+  body.innerHTML = `<div class="empty">Loading precincts…</div>`;
+  const pf = await precincts(fips);
+
+  const draw = () => {
+    const lc = l.contests[cur.id];
+    const isP = partisan(cur);
+    const prec = pf.precincts.filter(p => p.contests[cur.id]);
+    const top = cur.options.map((o, i) => i).sort((a, b) => lc.v[b] - lc.v[a]).filter(i => partyKey(cur.options[i]) !== "wi" || lc.v[i]).slice(0, 3);
+    const capVotes = sum(prec.filter(p => p.virtual).map(p => sum(p.contests[cur.id].v)));
+    const capWarn = capVotes ? `<div class="warn"><b>${fmt(capVotes)} early and mail votes are in the central absentee precinct.</b> Until ${esc(title(l.name))} splits them out by precinct (deadline Nov 10, noon), the precinct rows below show Election Day and provisional votes only, so precinct shares lean Republican.</div>` : "";
+    body.innerHTML = `
+      <div class="tools"><label class="muted" for="d-contest" style="font-size:12px">Contest</label>
+        <select id="d-contest" style="flex:1;min-width:0">${ids.map(c => `<option value="${c.id}"${c.id === cur.id ? " selected" : ""}>${esc(contestTitle(c))}</option>`).join("")}</select></div>
+      <div class="kv">
+        <div><div class="l">Votes</div><div class="v num">${fmt(lc.total)}</div></div>
+        <div><div class="l">Turnout*</div><div class="v num">${fp(l.turnout_pct)}</div></div>
+        <div><div class="l">Absentee returned</div><div class="v num">${fmt(l.ab_voted)}</div></div>
+        <div><div class="l">Absentee not counted</div><div class="v num">${fmt(l.ab_outstanding)}</div></div>
+        ${isP && l.ncec_demperf != null ? `<div><div class="l">NCEC Dem model</div><div class="v num">${fp(l.ncec_demperf)}</div></div>` : ""}
+      </div>
+      <div class="card"><h3>${esc(contestTitle(cur))}</h3><div class="sub">${reportingSub(lc.part, lc.rep)}</div>
+        ${resultRows(cur, lc.v, { hideZeroWriteIn: true })}
+        ${methodTable(cur, cur.options.map((o, i) => GROUPS.map(([g]) => lc[g][i])))}</div>
+      <section class="stack"><h2>Precincts · ${prec.filter(p => !p.virtual).length}</h2>${capWarn}
+        <div class="tbl-wrap"><table class="static"><thead><tr><th>Precinct</th><th>Status</th>${top.map(i => `<th>${esc(cur.type === "BallotMeasure" ? cur.options[i].name : shortName(cur.options[i].name))}</th>`).join("")}<th>Votes</th><th>Turnout*</th></tr></thead><tbody>
+        ${prec.map(p => {
+          const pc = p.contests[cur.id], t = sum(pc.v);
+          const lead = t ? pc.v.indexOf(Math.max(...pc.v)) : -1;
+          const done = p.status !== "Not Reported";
+          return `<tr${p.virtual ? ' class="cap"' : ""}><td>${p.virtual ? `Central absentee precinct <span class="tag" style="background:rgba(240,165,0,.18);color:var(--amber)">CAP</span>` : esc(p.display_name)}</td>
+            <td><span class="chip ${done ? "st-final" : "st-not-reported"}">${done ? "In" : "Not in"}</span></td>
+            ${top.map(i => `<td class="num${i === lead ? " lead" : ""}" ${i === lead ? `style="color:${pcolor(cur.options[i])}"` : ""}>${t ? (pc.v[i] / t * 100).toFixed(1) + "%" : "—"}</td>`).join("")}
+            <td class="num">${fmt(t)}</td><td class="num">${p.virtual ? "—" : fp(p.turnout_pct)}</td></tr>`;
+        }).join("")}</tbody></table></div>
+        <p class="note">Under SBE Policy 2023-001, absentee results go into a central absentee precinct (CAP) on election night and must be reported by precinct by noon on the seventh day after the election.</p></section>`;
+    $("#d-contest").onchange = e => { cur = D.byId[e.target.value]; draw(); };
+  };
+  draw();
+}
+function closeDrawer() { $("#scrim").hidden = true; $("#drawer").hidden = true; }
+$("#d-close").onclick = closeDrawer;
+$("#scrim").onclick = closeDrawer;
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+
+/* ── Wiring ───────────────────────────────────────────── */
+function bindSearch(sel, key, redraw) {
+  const el = $(sel);
+  el.oninput = () => { S.q[key] = el.value; redraw(); };
+}
+document.addEventListener("click", e => {
+  const th = e.target.closest("table:not(.static) th[data-k]");
+  if (th) {
+    const key = th.closest("table").dataset.key, k = th.dataset.k;
+    const cur = S.sort[key] || { k: "tot", d: -1 };
+    S.sort[key] = { k, d: cur.k === k ? -cur.d : (k === "name" || k === "lead" || k === "st" ? 1 : -1) };
+    render(); return;
+  }
+  const tr = e.target.closest("table:not(.static) tbody tr[data-fips]");
+  if (tr) { openLocality(tr.dataset.fips, tr.closest("table").dataset.cid); return; }
+  const ob = e.target.closest("[data-open]");
+  if (ob) openLocality(ob.dataset.open, ob.dataset.cid);
+});
+document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { S.tab = b.dataset.tab; setHash(); render(); });
+
+function setHash() {
+  const h = S.tab === "congress" ? `cd${S.cd}` : S.tab;
+  try { history.replaceState(null, "", "#" + h); } catch (_) {}
+}
+function readHash() {
+  const h = location.hash.slice(1);
+  const m = h.match(/^cd(\d{1,2})$/);
+  if (m) { S.tab = "congress"; S.cd = +m[1]; }
+  else if (["statewide", "congress", "local"].includes(h)) S.tab = h;
+}
+function render() {
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === S.tab));
+  renderStrip();
+  ({ statewide: renderStatewide, congress: renderCongress, local: renderLocal })[S.tab]();
+}
+
+let left = REFRESH_S;
+async function tick() {
+  left -= 1;
+  if (left <= 0) {
+    left = REFRESH_S;
+    try {
+      const active = document.activeElement?.id;
+      await load(); render();
+      if (active && $("#" + active)) $("#" + active).focus();
+    } catch (err) { console.warn("refresh failed", err); }
+  }
+  $("#m-cd").textContent = left;
+}
+
+(async function start() {
+  readHash();
+  try { await load(); render(); }
+  catch (err) { $("#view").innerHTML = `<div class="empty">Results data could not be loaded (${esc(err.message)}). The page will retry in ${REFRESH_S} seconds.</div>`; }
+  setInterval(tick, 1000);
+})();
+</script>
 </body>
 </html>
