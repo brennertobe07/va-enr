@@ -530,7 +530,7 @@ async function openLocality(fips, cid) {
     const prec = pf.precincts.filter(p => p.contests[cur.id]);
     const top = cur.options.map((o, i) => i).sort((a, b) => lc.v[b] - lc.v[a]).filter(i => partyKey(cur.options[i]) !== "wi" || lc.v[i]).slice(0, 3);
     const capVotes = sum(prec.filter(p => p.virtual).map(p => sum(p.contests[cur.id].v)));
-    const capWarn = capVotes ? `<div class="warn"><b>${fmt(capVotes)} early and mail votes are in the central absentee precinct.</b> Until ${esc(title(l.name))} splits them out by precinct (deadline Nov 10, noon), the precinct rows below show Election Day and provisional votes only, so precinct shares lean Republican.</div>` : "";
+    const capWarn = capVotes ? `<div class="warn"><b>${fmt(capVotes)} early and mail votes are in the central absentee precinct.</b> Until ${esc(title(l.name))} splits them out by precinct (deadline Nov 13, 5 PM), the precinct rows below show Election Day and provisional votes only, so precinct shares lean Republican.</div>` : "";
     body.innerHTML = `
       <div class="tools"><label class="muted" for="d-contest" style="font-size:12px">Contest</label>
         <select id="d-contest" style="flex:1;min-width:0">${ids.map(c => `<option value="${c.id}"${c.id === cur.id ? " selected" : ""}>${esc(contestTitle(c))}</option>`).join("")}</select></div>
@@ -555,7 +555,7 @@ async function openLocality(fips, cid) {
             ${top.map(i => `<td class="num${i === lead ? " lead" : ""}" ${i === lead ? `style="color:${pcolor(cur.options[i])}"` : ""}>${t ? (pc.v[i] / t * 100).toFixed(1) + "%" : "—"}</td>`).join("")}
             <td class="num">${fmt(t)}</td><td class="num">${p.virtual ? "—" : fp(p.turnout_pct)}</td></tr>`;
         }).join("")}</tbody></table></div>
-        <p class="note">Under SBE Policy 2023-001, absentee results go into a central absentee precinct (CAP) on election night and must be reported by precinct by noon on the seventh day after the election.</p></section>`;
+        <p class="note">Under SBE Policy 2023-001 and ELECT Policy 2025-002, absentee results go into a central absentee precinct (CAP) on election night. Absentee and provisional results must be reported by precinct by 5 PM on the tenth day after a general election (Nov 13, 2026).</p></section>`;
     $("#d-contest").onchange = e => { cur = D.byId[e.target.value]; draw(); };
   };
   draw();
