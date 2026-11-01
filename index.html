@@ -105,16 +105,63 @@ h2 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-t
 .split i { display: block; height: 100%; }
 .split-lab { display: flex; justify-content: space-between; font-size: 12px; margin-top: 5px; gap: 8px; }
 
-/* CD tiles */
-.cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(215px, 100%), 1fr)); gap: 10px; }
-.cd { text-align: left; cursor: pointer; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 13px; transition: border-color .12s, background .12s; }
-.cd:hover { background: var(--surface2); }
-.cd[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-bg); }
-.cd .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.cd .t b { font-size: 14px; }
-.cd .t span { font-size: 11px; color: var(--muted); }
-.cd .who { display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; gap: 8px; }
-.cd .who span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.split.mid { position: relative; }
+.split.mid::after { content: ""; position: absolute; left: calc(50% - 1px); top: 0; bottom: 0; width: 2px; background: var(--bg); }
+
+/* ── Congress tree: CD › locality › precinct, expanded in place ── */
+#crumb { position: sticky; top: var(--top-h, 0px); z-index: 15; background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; padding-block: 8px; border-bottom: 1px solid var(--border); }
+.trail { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-width: 0; font-size: 13px; }
+.trail button { background: none; border: 0; padding: 4px 6px; border-radius: 4px; cursor: pointer; color: var(--accent); font-weight: 600; }
+.trail button:last-child { color: var(--text); }
+.trail button:hover { background: var(--surface2); }
+.trail .sep { color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--border2); border-radius: var(--radius); overflow: hidden; flex-shrink: 0; }
+.seg button { background: none; border: 0; padding: 6px 12px; font-size: 12.5px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--border2); }
+.seg button[aria-pressed="true"] { background: var(--accent-bg); color: var(--accent); }
+.seg .num { font-weight: 400; font-size: 11.5px; }
+.cmp { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.cmp select { padding: 5px 8px; }
+#crumb .ctl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree { display: flex; flex-direction: column; gap: 10px; }
+.cdn { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.cdn.open { border-color: var(--accent); }
+.nh { width: 100%; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 3px 10px; align-items: baseline; background: none; border: 0; text-align: left; padding: 12px 14px; cursor: pointer; border-radius: var(--radius); scroll-margin-top: calc(var(--top-h, 0px) + 52px); }
+.nh:hover { background: var(--surface2); }
+.nh .chev { width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(-45deg); align-self: center; justify-self: center; transition: transform .15s; }
+.nh[aria-expanded="true"] .chev { transform: rotate(45deg); border-color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .nh .chev { transition: none; } }
+.nh .ttl { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nh .rt { font-size: 13.5px; font-weight: 700; text-align: right; white-space: nowrap; }
+.nh .split, .nh .s2 { grid-column: 2 / -1; }
+.nh .split { margin-top: 5px; }
+.nh .s2 { font-size: 12px; color: var(--muted); display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: center; margin-top: 3px; }
+.tgt { color: var(--amber); margin-left: 2px; }
+.lb .up { align-self: flex-start; }
+.nb { padding: 0 14px 14px 40px; display: flex; flex-direction: column; gap: 12px; }
+.nb .res { margin-top: 0; }
+.nb .kv > div { background: var(--surface2); }
+details.vm summary { cursor: pointer; font-size: 12px; color: var(--muted); font-weight: 600; }
+.lhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.locs > li + li { border-top: 1px solid var(--border); }
+.locs .nh { padding: 10px 6px; }
+.locs .nh .ttl { font-size: 14px; font-weight: 600; }
+.locs .nh .rt { font-size: 12.5px; }
+.lb { margin: 0 0 12px 13px; padding-left: 14px; border-left: 2px solid var(--border2); display: flex; flex-direction: column; gap: 10px; }
+.ptbl td:first-child { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.ptbl tr.out td { color: var(--muted); }
+.ptbl td.lead { font-weight: 700; }
+@media (max-width: 760px) {
+  #top { position: static; }
+  .nh { padding: 11px 10px; }
+  .nb { padding: 0 10px 12px 10px; }
+  .lb { margin-left: 4px; padding-left: 8px; }
+  .ptbl th, .ptbl td { padding: 6px 6px; }
+  .ptbl td:first-child { max-width: 118px; }
+  .ptbl .wide { display: none; }
+  .seg .num { display: none; }
+}
 
 /* party tags & status chips */
 .tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 3px; letter-spacing: .03em; white-space: nowrap; }
@@ -193,8 +240,8 @@ tr.cap td { background: rgba(240,165,0,.06); }
   </div>
   <div id="strip"></div>
   <nav id="tabs" class="wrap" role="tablist" aria-label="Result views">
-    <button role="tab" id="tab-statewide" data-tab="statewide" aria-selected="true">Statewide</button>
-    <button role="tab" id="tab-congress" data-tab="congress" aria-selected="false">Congress<span class="count">CD 1–11</span></button>
+    <button role="tab" id="tab-congress" data-tab="congress" aria-selected="true">Congress<span class="count">CD 1–11</span></button>
+    <button role="tab" id="tab-statewide" data-tab="statewide" aria-selected="false">Statewide</button>
     <button role="tab" id="tab-local" data-tab="local" aria-selected="false">Local<span class="count" id="local-count"></span></button>
   </nav>
 </div>
@@ -221,8 +268,17 @@ const GROUPS = [["ev", "Early"], ["ed", "Election Day"], ["mail", "Mail"], ["pro
 const AB_LABEL = { "not-reported": "Absentee not in", "in-person-only": "Early in", "mailed-only": "Mail in", "all-reported": "Absentee in", "final": "Final" };
 const ORD = ["", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th"];
 
-const S = { tab: "statewide", swContest: "cc142", cd: 7, localFips: null, sort: {}, q: {}, precCache: {} };
+const TARGETS = [1, 2, 5];   // CDs shown by the Congress "Targets" toggle
+// "Compare to" options: [label, share index, weight index] into baseline.json records
+// [exp26, base26, gov25, top25, pres24, top24] (two-party Dem %, built by build_baseline.py from NCEC precinct data)
+const CMP = { base: ["Baseline", 1, 0], gov25: ["Spanberger '25", 2, 3], pres24: ["Harris '24", 4, 5] };
+let targetsPref = true, cmpPref = "base";
+try { targetsPref = localStorage.getItem("enr.targets") !== "0"; cmpPref = localStorage.getItem("enr.cmp") || "base"; } catch (_) {}
+
+const S = { tab: "congress", swContest: "cc142", open: { cd: null, fips: null }, targetsOnly: targetsPref, cmp: CMP[cmpPref] ? cmpPref : "base",
+            localFips: null, sort: {}, q: {}, precCache: {}, precData: {} };
 let D = null;   // { summary, contests, localities, metadata, byId, locByFips }
+let BASE = null; // baseline.json: static, fetched once; comparisons show "—" if it fails
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -266,10 +322,16 @@ async function load() {
   const get = f => fetch(`${DATA}${f}?t=${t}`).then(r => { if (!r.ok) throw new Error(`${f}: ${r.status}`); return r.json(); });
   const [summary, contests, localities, metadata] = await Promise.all(
     ["summary.json", "contests.json", "localities.json", "metadata.json"].map(get));
+  if (!BASE) BASE = await fetch(`${DATA}baseline.json`).then(r => r.ok ? r.json() : null).catch(() => null);
   D = { summary, contests, localities, metadata,
         byId: Object.fromEntries(contests.map(c => [c.id, c])),
         locByFips: Object.fromEntries(localities.map(l => [l.fips, l])) };
-  S.precCache = {};
+  S.precCache = {}; S.precData = {};
+  // refetch the open locality's precincts before render so the tree doesn't flash "Loading"
+  if (S.open.fips) await loadPrec(S.open.fips);
+}
+function loadPrec(fips) {
+  return precincts(fips).then(pf => S.precData[fips] = pf, () => S.precData[fips] = { precincts: [], failed: true });
 }
 async function precincts(fips) {
   if (!S.precCache[fips]) {
@@ -353,7 +415,7 @@ function locTable(c, key, cdKey) {
   const isP = partisan(c), isM = c.type === "BallotMeasure";
   const cols = [
     ["name", "Locality"], ["rep", "Reporting"], ["st", "Absentee"], ["lead", "Leader"], ["marg", "Margin"],
-    ...(isP ? [["dem", "Dem %"], ["vsModel", "vs NCEC"]] : []),
+    ...(isP ? [["dem", "Dem %"], ["vsModel", "vs Baseline"]] : []),
     ...(isM ? [["dem", "Yes %"]] : []),
     ["tot", "Votes"], ...(cdKey ? [] : [["turn", "Turnout*"]]), ["abOut", "Abs. not counted"],
   ];
@@ -422,48 +484,179 @@ function renderStatewide() {
           <input type="search" id="q-sw" placeholder="Find a locality" value="${esc(S.q.sw || "")}" aria-label="Find a locality">
         </div></div>
       <div id="tbl-sw">${locTable(cur, "sw")}</div>
-      <p class="note">Click a locality for precinct results. *Turnout uses the March 1, 2026 registration snapshot. "vs NCEC" is Dem share minus the NCEC 2026 Dem performance model. Absentee not counted = returned absentee ballots minus early, mail and post-election votes reported.</p>
+      <p class="note">Click a locality for precinct results. *Turnout uses the March 1, 2026 registration snapshot. "vs Baseline" is Dem share minus the expected 2026 Dem share from recent elections (NCEC). Absentee not counted = returned absentee ballots minus early, mail and post-election votes reported.</p>
     </section>`;
   $("#sw-contest").onchange = e => { S.swContest = e.target.value; renderStatewide(); };
   bindSearch("#q-sw", "sw", () => $("#tbl-sw").innerHTML = locTable(cur, "sw"));
 }
 
-/* ── Congress tab ─────────────────────────────────────── */
+/* ── Congress tab: CD › locality › precinct tree ──────── */
+// Every level opens in place under the row you tapped; #crumb (sticky) shows the path back up.
+function leadText(c, v) {
+  const t = sum(v);
+  if (!t) return `<span class="muted" style="font-weight:500">Not reported</span>`;
+  const ix = v.map((x, i) => i).sort((a, b) => v[b] - v[a]);
+  const o = c.options[ix[0]], m = (v[ix[0]] - (ix.length > 1 ? v[ix[1]] : 0)) / t * 100;
+  return `<span class="num" style="color:${pcolor(o)}">${esc(shortName(o.name))} +${m.toFixed(1)}</span>`;
+}
+function dvrBar(c, v) {
+  const t = sum(v), dI = optIdx(c, "Democratic"), rI = optIdx(c, "Republican");
+  if (!t) return `<div class="split mid"></div>`;
+  const d = dI >= 0 ? v[dI] : 0, r = rI >= 0 ? v[rI] : 0;
+  return `<div class="split mid"><i style="width:${d / t * 100}%;background:var(--dem)"></i><i style="width:${(t - d - r) / t * 100}%;background:var(--oth)"></i><i style="flex:1;background:${r ? "var(--rep)" : "transparent"}"></i></div>`;
+}
+function matchup(c) {
+  const d = c.options[optIdx(c, "Democratic")], r = c.options[optIdx(c, "Republican")];
+  return d && r ? `${esc(shortName(d.name))} v. ${esc(shortName(r.name))}` : "";
+}
+// two-party Dem share of a vote array, and its gap vs the selected baseline record
+function dem2(c, v) {
+  const dI = optIdx(c, "Democratic"), rI = optIdx(c, "Republican");
+  if (dI < 0 || rI < 0) return null;
+  const t = v[dI] + v[rI];
+  return t ? v[dI] / t * 100 : null;
+}
+const baseOf = rec => rec ? rec[CMP[S.cmp][1]] : null;
+function vsCmp(cur, rec, long) {
+  const b = baseOf(rec);
+  if (cur == null || b == null) return "";
+  const d = cur - b;
+  return `<span class="num dlt ${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${d > 0 ? "+" : ""}${d.toFixed(1)}${long ? ` vs ${CMP[S.cmp][0]}` : ""}</span>`;
+}
+function cdLocs(c) {
+  // stable order all night: largest expected vote (NCEC) first, scaled to the share of precincts in this CD
+  const ev = l => (l.ncec_expvote || 0) * (l.contests[c.id]?.part || 0) / (l.precincts_part || 1);
+  return c.localities.map(f => D.locByFips[f]).filter(Boolean).sort((a, b) => ev(b) - ev(a));
+}
+
 function renderCongress() {
-  const cds = D.contests.filter(c => c.scope === "Congressional");
-  const c = cds.find(x => x.district === S.cd) || cds[0];
-  const tile = x => {
-    const dI = optIdx(x, "Democratic"), rI = optIdx(x, "Republican");
-    const d = dI >= 0 ? x.options[dI] : null, r = rI >= 0 ? x.options[rI] : null;
-    const t = x.total || 0;
-    const other = t - (d ? d.votes : 0) - (r ? r.votes : 0);
-    return `<button class="cd" data-cd="${x.district}" aria-pressed="${x.district === c.district}">
-      <div class="t"><b>CD ${x.district}</b><span class="num">${fp(x.pct_reporting, 0)} in</span></div>
-      <div class="split">${t ? `<i style="width:${d ? d.votes / t * 100 : 0}%;background:var(--dem)"></i><i style="width:${other / t * 100}%;background:var(--oth)"></i><i style="flex:1;background:var(--rep)"></i>` : ""}</div>
-      <div class="who num"><span style="color:#8db8ea">${d ? esc(shortName(d.name)) + " " + fp(d.pct) : "—"}</span><span style="color:#ec9a90">${r ? fp(r.pct) + " " + esc(shortName(r.name)) : "—"}</span></div>
-    </button>`;
-  };
-  const cdKey = String(c.district);
-  const abOut = sum(D.localities.map(l => (l.cds[cdKey] || {}).ab_outstanding || 0));
+  const all = D.contests.filter(c => c.scope === "Congressional").sort((a, b) => a.district - b.district);
+  const oc = all.find(c => c.district === S.open.cd);
+  const ol = oc && S.open.fips ? D.locByFips[S.open.fips] : null;
+  const cds = S.targetsOnly ? all.filter(c => TARGETS.includes(c.district) || c === oc) : all;
+  const trail = [`<button data-crumb="root">${S.targetsOnly ? "Target districts" : "All districts"}</button>`];
+  if (oc) trail.push(`<button data-crumb="cd">CD ${oc.district}</button>`);
+  if (ol) trail.push(`<button data-crumb="loc">${esc(title(ol.name))}</button>`);
   $("#view").innerHTML = `
-    <section class="stack"><h2>Congressional districts</h2><div class="cd-grid">${cds.map(tile).join("")}</div></section>
-    <div class="grid-sw">
-      <div class="card big sel"><h3>${contestTitle(c)}</h3>
-        <div class="sub">${reportingSub(c.precincts_part, c.precincts_rep)}<span>${c.localities.length} localities</span></div>
-        ${resultRows(c, c.options.map(o => o.votes))}${marginLine(c, c.options.map(o => o.votes))}</div>
-      <div class="card"><h3>Vote method</h3><div class="sub">Share of each candidate's votes by how they were cast</div>
-        ${methodTable(c, c.options.map(o => GROUPS.map(([g]) => o[g])))}
-        <div class="kv" style="margin-top:12px"><div><div class="l">Absentee not counted</div><div class="v num">${fmt(abOut)}</div></div>
-          <div><div class="l">Localities</div><div class="v num">${c.localities.length}</div></div></div></div>
-    </div>
-    <section class="stack">
-      <div class="sec-head"><h2>Localities in CD ${c.district}</h2>
-        <div class="tools"><input type="search" id="q-cd" placeholder="Find a locality" value="${esc(S.q.cd || "")}" aria-label="Find a locality"></div></div>
-      <div id="tbl-cd">${locTable(c, "cd", cdKey)}</div>
-      <p class="note">Split localities show only their precincts in this district, and absentee counts only voters assigned to CD ${c.district}.</p>
-    </section>`;
-  document.querySelectorAll(".cd").forEach(b => b.onclick = () => { S.cd = +b.dataset.cd; setHash(); renderCongress(); });
-  bindSearch("#q-cd", "cd", () => $("#tbl-cd").innerHTML = locTable(c, "cd", cdKey));
+    <div id="crumb"><nav class="trail" aria-label="Drill-down path">${trail.join(`<span class="sep" aria-hidden="true">›</span>`)}</nav>
+      <div class="ctl"><div class="seg" role="group" aria-label="Districts shown">
+        <button data-scope="targets" aria-pressed="${S.targetsOnly}">Targets <span class="num">${TARGETS.join(" · ")}</span></button>
+        <button data-scope="all" aria-pressed="${!S.targetsOnly}">All 11</button></div>
+      <label class="cmp">vs <select id="cmp" aria-label="Compare Dem share to">${Object.entries(CMP).map(([k, [lab]]) => `<option value="${k}"${k === S.cmp ? " selected" : ""}>${lab}</option>`).join("")}</select></label></div></div>
+    <ul class="tree">${cds.map(cdNode).join("")}</ul>
+    <p class="note">Tap a district for its localities, then a locality for its precincts. Localities are ordered by expected vote.
+      Split localities show only their precincts in that district, and absentee counts only voters assigned to it.
+      D % is the Democrat's share of the two-party (D + R) vote. The ± compares it with the same precincts in the chosen election:
+      Baseline is the expected 2026 Dem share from recent elections (NCEC), Spanberger '25 is the 2025 governor's race, Harris '24 the 2024 presidential race.
+      Until a locality's absentee ballots are counted, its returns are mostly Election Day votes and will run behind the comparison.
+      Est. D / R not counted applies each locality's absentee party mix to its uncounted ballots.</p>`;
+  $("#cmp").onchange = e => {
+    S.cmp = e.target.value;
+    try { localStorage.setItem("enr.cmp", S.cmp); } catch (_) {}
+    renderCongress();
+  };
+}
+function cdNode(c) {
+  const open = c.district === S.open.cd, v = c.options.map(o => o.votes), key = String(c.district);
+  const locs = cdLocs(c);
+  const ab = locs.map(l => [l, (l.cds[key] || {}).ab_outstanding || 0]);
+  const abOut = sum(ab.map(([, n]) => n));
+  const dm = dem2(c, v), rec = BASE?.cdt?.[key];
+  const head = `<button class="nh" id="n-cd${c.district}" data-cd="${c.district}" aria-expanded="${open}">
+      <span class="chev" aria-hidden="true"></span>
+      <span class="ttl">CD ${c.district}${TARGETS.includes(c.district) ? `<span class="tgt" title="Target district">*</span>` : ""}</span>
+      <span class="rt">${leadText(c, v)}</span>
+      ${dvrBar(c, v)}
+      <span class="s2"><span>${matchup(c)}</span><span class="num">${fp(c.pct_reporting, 0)} in · ${fmt(c.precincts_rep)}/${fmt(c.precincts_part)}</span>
+        ${dm != null ? `<span class="num">D ${fp(dm)} ${vsCmp(dm, rec, true)}</span>` : rec ? `<span>${CMP[S.cmp][0]} D ${fp(baseOf(rec))}</span>` : ""}
+        <span class="num">${fmt(abOut)} absentee not counted</span></span>
+    </button>`;
+  if (!open) return `<li class="cdn">${head}</li>`;
+  const estD = Math.round(sum(ab.map(([l, n]) => n * (l.ab_dem_pct || 0) / 100)));
+  const estR = Math.round(sum(ab.map(([l, n]) => n * (l.ab_rep_pct || 0) / 100)));
+  return `<li class="cdn open">${head}<div class="nb">
+      ${resultRows(c, v, { hideZeroWriteIn: true })}${marginLine(c, v)}
+      <div class="kv">
+        <div><div class="l">Votes</div><div class="v num">${fmt(c.total)}</div></div>
+        <div><div class="l">Absentee not counted</div><div class="v num">${fmt(abOut)}</div></div>
+        <div><div class="l">Est. D not counted</div><div class="v num" style="color:var(--dem)">${fmt(estD)}</div></div>
+        <div><div class="l">Est. R not counted</div><div class="v num" style="color:var(--rep)">${fmt(estR)}</div></div>
+      </div>
+      <details class="vm"><summary>Vote method</summary>${methodTable(c, c.options.map(o => GROUPS.map(([g]) => o[g])))}</details>
+      <div class="lhead"><h2>Localities · ${locs.length}</h2><span class="note">largest expected vote first</span></div>
+      <ul class="locs">${locs.map(l => locNode(c, l)).join("")}</ul>
+    </div></li>`;
+}
+function locNode(c, l) {
+  const lc = l.contests[c.id], key = String(c.district), open = S.open.fips === l.fips;
+  if (!lc) return "";
+  const dem = dem2(c, lc.v), rec = BASE?.cd?.[key]?.[l.fips];
+  const abOut = (l.cds[key] || {}).ab_outstanding;
+  const head = `<button class="nh" id="n-${c.district}-${l.fips}" data-loc="${l.fips}" aria-expanded="${open}">
+      <span class="chev" aria-hidden="true"></span>
+      <span class="ttl">${esc(title(l.name))}${lc.part < l.precincts_part ? ` <span class="muted" style="font-weight:400;font-size:12px">(part)</span>` : ""}</span>
+      <span class="rt">${leadText(c, lc.v)}</span>
+      <span class="s2"><span class="num"><span class="mini"><i style="width:${lc.part ? lc.rep / lc.part * 100 : 0}%"></i></span>${lc.rep}/${lc.part}</span>${chip(l.absentee_state)}
+        ${dem != null ? `<span class="num">D ${fp(dem)} ${vsCmp(dem, rec, true)}</span>` : rec ? `<span>${CMP[S.cmp][0]} D ${fp(baseOf(rec))}</span>` : ""}
+        ${abOut ? `<span class="num">${fmt(abOut)} abs. not counted</span>` : ""}</span>
+    </button>`;
+  return `<li>${head}${open ? `<div class="lb">${precBlock(c, l)}</div>` : ""}</li>`;
+}
+function precBlock(c, l) {
+  const pf = S.precData[l.fips];
+  if (!pf) return `<div class="empty">Loading precincts…</div>`;
+  if (pf.failed) return `<div class="empty">Precinct results could not be loaded. They'll retry on the next refresh.</div>`;
+  const prec = pf.precincts.filter(p => p.contests[c.id]);
+  const capVotes = sum(prec.filter(p => p.virtual).map(p => sum(p.contests[c.id].v)));
+  const capWarn = capVotes ? `<div class="warn"><b>${fmt(capVotes)} early and mail votes are in the central absentee precinct.</b> Until ${esc(title(l.name))} splits them out by precinct (deadline Nov 13, 5 PM), precinct rows show Election Day and provisional votes only, so they lean Republican.</div>` : "";
+  const bp = BASE?.p?.[l.fips] || {};
+  return `${capWarn}
+    <div class="tbl-wrap"><table class="static ptbl"><thead><tr><th>Precinct · ${prec.filter(p => !p.virtual).length}</th><th>D %</th><th title="vs ${esc(CMP[S.cmp][0])}">±<span class="wide"> ${esc(CMP[S.cmp][0])}</span></th><th>Votes</th></tr></thead><tbody>
+    ${prec.map(p => {
+      const pv = p.contests[c.id].v, dm = dem2(c, pv);
+      const rec = p.virtual ? null : bp[String(parseInt(p.code, 10))];
+      const out = !p.virtual && p.status === "Not Reported";
+      const dCol = dm == null ? "" : dm >= 50 ? "var(--dem)" : "var(--rep)";
+      return `<tr class="${p.virtual ? "cap" : out ? "out" : ""}"><td>${p.virtual ? `<span class="wide">Central absentee </span><span class="tag" style="background:rgba(240,165,0,.18);color:var(--amber)">CAP</span>` : esc(p.display_name)}</td>
+        <td class="num lead"${dCol ? ` style="color:${dCol}"` : ""}>${dm == null ? "—" : fp(dm)}</td>
+        <td class="num">${out ? `<span class="muted">${rec ? fp(baseOf(rec)) : ""}</span>` : vsCmp(dm, rec) || "—"}</td>
+        <td class="num">${out ? "not in" : fmt(sum(pv))}</td></tr>`;
+    }).join("")}</tbody></table></div>
+    <button class="btn up" data-loc="${l.fips}">↑ Close ${esc(title(l.name))}</button>`;
+}
+function congressClick(e) {
+  const scrollTo = (id, always) => {
+    const el = $("#" + id); if (!el) return;
+    el.focus({ preventScroll: true });
+    if (always || el.getBoundingClientRect().top < (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--top-h")) || 0) + 52)
+      el.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
+  const b = e.target.closest("[data-cd], [data-loc], [data-crumb], [data-scope]");
+  if (!b) return false;
+  const o = S.open;
+  if (b.dataset.scope) {
+    S.targetsOnly = b.dataset.scope === "targets";
+    try { localStorage.setItem("enr.targets", S.targetsOnly ? "1" : "0"); } catch (_) {}
+    renderCongress(); return true;
+  }
+  if (b.dataset.crumb) {
+    const k = b.dataset.crumb;
+    if (k === "root") { o.cd = null; o.fips = null; setHash(); renderCongress(); window.scrollTo({ top: 0 }); }
+    else if (k === "cd") { o.fips = null; setHash(); renderCongress(); scrollTo(`n-cd${o.cd}`, true); }
+    else scrollTo(`n-${o.cd}-${o.fips}`, true);
+    return true;
+  }
+  if (b.dataset.cd) {
+    const cd = +b.dataset.cd, opening = o.cd !== cd;
+    o.cd = opening ? cd : null; o.fips = null;
+    setHash(); renderCongress(); scrollTo(`n-cd${cd}`, opening);
+    return true;
+  }
+  const fips = b.dataset.loc, opening = o.fips !== fips;
+  o.fips = opening ? fips : null;
+  setHash(); renderCongress(); scrollTo(`n-${o.cd}-${fips}`, opening);
+  if (opening && !S.precData[fips]) loadPrec(fips).then(() => { if (S.tab === "congress" && o.fips === fips) { renderCongress(); $(`#n-${o.cd}-${fips}`)?.focus({ preventScroll: true }); } });
+  return true;
 }
 function methodTable(c, perOpt) {
   // perOpt[i] = votes by GROUPS order for option i
@@ -539,7 +732,7 @@ async function openLocality(fips, cid) {
         <div><div class="l">Turnout*</div><div class="v num">${fp(l.turnout_pct)}</div></div>
         <div><div class="l">Absentee returned</div><div class="v num">${fmt(l.ab_voted)}</div></div>
         <div><div class="l">Absentee not counted</div><div class="v num">${fmt(l.ab_outstanding)}</div></div>
-        ${isP && l.ncec_demperf != null ? `<div><div class="l">NCEC Dem model</div><div class="v num">${fp(l.ncec_demperf)}</div></div>` : ""}
+        ${isP && l.ncec_demperf != null ? `<div><div class="l">Dem baseline</div><div class="v num">${fp(l.ncec_demperf)}</div></div>` : ""}
       </div>
       <div class="card"><h3>${esc(contestTitle(cur))}</h3><div class="sub">${reportingSub(lc.part, lc.rep)}</div>
         ${resultRows(cur, lc.v, { hideZeroWriteIn: true })}
@@ -571,6 +764,7 @@ function bindSearch(sel, key, redraw) {
   el.oninput = () => { S.q[key] = el.value; redraw(); };
 }
 document.addEventListener("click", e => {
+  if (S.tab === "congress" && D && congressClick(e)) return;
   const th = e.target.closest("table:not(.static) th[data-k]");
   if (th) {
     const key = th.closest("table").dataset.key, k = th.dataset.k;
@@ -585,16 +779,28 @@ document.addEventListener("click", e => {
 });
 document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { S.tab = b.dataset.tab; setHash(); render(); });
 
+// #cd2 = CD 2 open, #cd2/550 = CD 2 › Chesapeake open (shareable)
 function setHash() {
-  const h = S.tab === "congress" ? `cd${S.cd}` : S.tab;
+  const o = S.open;
+  const h = S.tab !== "congress" ? S.tab : o.cd ? `cd${o.cd}${o.fips ? "/" + o.fips : ""}` : "congress";
   try { history.replaceState(null, "", "#" + h); } catch (_) {}
 }
 function readHash() {
   const h = location.hash.slice(1);
-  const m = h.match(/^cd(\d{1,2})$/);
-  if (m) { S.tab = "congress"; S.cd = +m[1]; }
+  const m = h.match(/^cd(\d{1,2})(?:\/(\d{3}))?$/);
+  if (m) {
+    S.tab = "congress"; S.open = { cd: +m[1], fips: m[2] || null };
+    if (!TARGETS.includes(S.open.cd)) S.targetsOnly = false;
+  }
   else if (["statewide", "congress", "local"].includes(h)) S.tab = h;
 }
+// sticky offset for #crumb: header height on desktop, 0 on phones where #top scrolls away
+function measureTop() {
+  const t = $("#top");
+  document.documentElement.style.setProperty("--top-h", (getComputedStyle(t).position === "sticky" ? t.offsetHeight : 0) + "px");
+}
+if (window.ResizeObserver) new ResizeObserver(measureTop).observe($("#top"));
+addEventListener("resize", measureTop);
 function render() {
   document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === S.tab));
   renderStrip();
@@ -609,7 +815,7 @@ async function tick() {
     try {
       const active = document.activeElement?.id;
       await load(); render();
-      if (active && $("#" + active)) $("#" + active).focus();
+      if (active && $("#" + active)) $("#" + active).focus({ preventScroll: true });
     } catch (err) { console.warn("refresh failed", err); }
   }
   $("#m-cd").textContent = left;
