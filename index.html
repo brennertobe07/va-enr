@@ -49,6 +49,7 @@ button { font: inherit; color: inherit; }
 #hdr { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
 #hdr h1 { margin: 0; font-size: 15px; font-weight: 600; flex: 1; min-width: 220px; }
 #hdr h1 span { color: var(--accent); }
+#hdr h1 a { color: inherit; text-decoration: none; }
 #hdr .meta { display: flex; gap: 14px; font-size: 12px; color: var(--muted); font-family: var(--mono); flex-wrap: wrap; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 5px; animation: pulse 2s infinite; }
 @keyframes pulse { 50% { opacity: .3; } }
@@ -247,8 +248,8 @@ td .lead { font-weight: 600; }
 #drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100%); background: var(--bg); border-left: 1px solid var(--border2); z-index: 41; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
 #drawer .dh { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
 #drawer .dh h3 { margin: 0; font-size: 17px; }
-#drawer .dh .x { margin-left: auto; background: none; border: 1px solid var(--border2); border-radius: var(--radius); width: 32px; height: 32px; cursor: pointer; font-size: 16px; flex-shrink: 0; }
-#drawer .db { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+#drawer .dh .back { background: none; border: 1px solid var(--border2); border-radius: var(--radius); padding: 7px 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
+#drawer .db { flex: 1; min-height: 0; overscroll-behavior: contain; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 .kv { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
 .kv > div { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; }
 .kv > div > .l { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
@@ -258,6 +259,9 @@ td .lead { font-weight: 600; }
 .warn { border: 1px solid rgba(240,165,0,.45); background: rgba(240,165,0,.09); color: #f3c766; border-radius: var(--radius); padding: 9px 12px; font-size: 12.5px; line-height: 1.45; }
 .warn b { color: var(--amber); }
 tr.cap td { background: rgba(240,165,0,.06); }
+/* phones: #top scrolls away, so a floating button brings the tabs back */
+#totop { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: var(--surface); border: 1px solid var(--border2); border-radius: 999px; padding: 9px 14px; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+@media (min-width: 761px) { #totop { display: none; } }
 [hidden] { display: none !important; }
 </style>
 </head>
@@ -266,7 +270,7 @@ tr.cap td { background: rgba(240,165,0,.06); }
 <div id="top">
   <div id="mock" class="wrap" hidden>Mock data: synthetic votes for layout review, not real results</div>
   <div id="hdr" class="wrap">
-    <h1>Virginia <span>Election Results</span> · November 3, 2026 General</h1>
+    <h1><a href="#congress" id="home">Virginia <span>Election Results</span> · November 3, 2026 General</a></h1>
     <div class="meta"><span><i class="dot"></i>Updated <b id="m-upd">—</b></span><span>ENR <b id="m-enr">—</b></span><span>Refresh in <b id="m-cd">60</b>s</span><a href="archive/2026-04-referendum/" style="color:var(--muted)">April 2026 referendum →</a></div>
   </div>
   <div id="strip"></div>
@@ -280,14 +284,15 @@ tr.cap td { background: rgba(240,165,0,.06); }
 
 <main class="wrap" id="view"></main>
 
+<button id="totop" hidden>↑ Top</button>
 <div id="scrim" hidden></div>
 <aside id="drawer" hidden aria-modal="true" role="dialog" aria-labelledby="d-title">
   <div class="dh">
+    <button class="back" id="d-close">← Back</button>
     <div style="min-width:0">
       <h3 id="d-title">—</h3>
       <div class="sub" id="d-sub" style="font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
     </div>
-    <button class="x" id="d-close" aria-label="Close">✕</button>
   </div>
   <div class="db" id="d-body"></div>
 </aside>
@@ -878,6 +883,8 @@ async function openLocality(fips, cid) {
   $("#d-title").textContent = title(l.name);
   $("#d-sub").innerHTML = `${chip(l.absentee_state)}<span class="num">${l.precincts_rep}/${l.precincts_part} precincts</span><span class="num">FIPS ${l.fips}</span>`;
   $("#scrim").hidden = false; $("#drawer").hidden = false; $("#d-close").focus();
+  // own history entry, so the phone's Back button closes the drawer instead of leaving the page
+  if (!history.state?.drawer) try { history.pushState({ drawer: 1 }, "", location.href); } catch (_) {}
   const body = $("#d-body");
   body.innerHTML = `<div class="empty">Loading precincts…</div>`;
   const pf = await precincts(fips);
@@ -918,7 +925,12 @@ async function openLocality(fips, cid) {
   };
   draw();
 }
-function closeDrawer() { $("#scrim").hidden = true; $("#drawer").hidden = true; }
+let skipPop = false;
+function closeDrawer(fromPop) {
+  if ($("#drawer").hidden) return;
+  $("#scrim").hidden = true; $("#drawer").hidden = true;
+  if (fromPop !== true && history.state?.drawer) { skipPop = true; history.back(); }   // drop the drawer's history entry
+}
 $("#d-close").onclick = closeDrawer;
 $("#scrim").onclick = closeDrawer;
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
@@ -949,7 +961,8 @@ function setHash() {
   const path = o => o.cd ? `cd${o.cd}${o.fips ? "/" + o.fips : ""}` : "";
   const h = S.tab === "congress" ? path(S.open) || "congress"
           : S.tab === "senate" ? "senate" + (S.sopen.cd ? "/" + path(S.sopen) : "") : S.tab;
-  try { history.replaceState(null, "", "#" + h); } catch (_) {}
+  if (location.hash === "#" + h) return;
+  try { history.pushState(null, "", "#" + h); } catch (_) {}   // each step is a history entry: Back walks up the tree
 }
 function readHash() {
   const h = location.hash.slice(1);
@@ -959,9 +972,25 @@ function readHash() {
     S[m[1] ? "sopen" : "open"] = { cd: +m[2], fips: m[3] || null };
     if (!TARGETS.includes(+m[2])) S.targetsOnly = false;
   }
-  else if (h === "statewide") S.tab = "senate";
-  else if (["senate", "amendments", "congress", "local"].includes(h)) S.tab = h;
+  else if (h === "statewide" || h === "senate") { S.tab = "senate"; S.sopen = { cd: null, fips: null }; }
+  else if (h === "" || h === "congress") { S.tab = "congress"; S.open = { cd: null, fips: null }; }
+  else if (["amendments", "local"].includes(h)) S.tab = h;
 }
+try { history.scrollRestoration = "manual"; } catch (_) {}
+addEventListener("popstate", () => {
+  if (skipPop) { skipPop = false; return; }
+  if (!$("#drawer").hidden) { closeDrawer(true); return; }
+  if (!D) return;
+  readHash(); render();
+  const T = TREES[S.tab], o = T?.st();
+  const el = o?.cd && $("#" + (o.fips ? `${T.pre}-${o.cd}-${o.fips}` : `${T.pre}-cd${o.cd}`));
+  if (el) el.scrollIntoView({ block: "start" }); else window.scrollTo({ top: 0 });
+  if (o?.fips && !S.precData[o.fips]) loadPrec(o.fips).then(() => { if (TREES[S.tab]?.st().fips === o.fips) redraw(); });
+});
+// title = home: Congress tab, tree closed
+$("#home").onclick = e => { e.preventDefault(); S.tab = "congress"; S.open = { cd: null, fips: null }; setHash(); render(); window.scrollTo({ top: 0 }); };
+$("#totop").onclick = () => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+addEventListener("scroll", () => { $("#totop").hidden = scrollY < $("#top").offsetHeight + 400; }, { passive: true });
 // sticky offset for #crumb: header height on desktop, 0 on phones where #top scrolls away
 function measureTop() {
   const t = $("#top");
