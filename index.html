@@ -270,8 +270,9 @@ const ORD = ["", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", 
 
 const TARGETS = [1, 2, 5];   // CDs shown by the Congress "Targets" toggle
 // "Compare to" options: [label, share index, weight index] into baseline.json records
-// [exp26, base26, gov25, top25, pres24, top24] (two-party Dem %, built by build_baseline.py from NCEC precinct data)
-const CMP = { base: ["Baseline", 1, 0], gov25: ["Spanberger '25", 2, 3], pres24: ["Harris '24", 4, 5] };
+// [exp26, base26, gov25, top25, pres24, top24, hse24, hse22, top22] (two-party Dem %, built by build_baseline.py from NCEC precinct data)
+const CMP = { base: ["Baseline", 1, 0], gov25: ["Spanberger '25", 2, 3], pres24: ["Harris '24", 4, 5],
+              hse24: ["House '24", 6, 5], hse22: ["House '22", 7, 8] };
 let targetsPref = true, cmpPref = "base";
 try { targetsPref = localStorage.getItem("enr.targets") !== "0"; cmpPref = localStorage.getItem("enr.cmp") || "base"; } catch (_) {}
 
@@ -547,7 +548,8 @@ function renderCongress() {
     <p class="note">Tap a district for its localities, then a locality for its precincts. Localities are ordered by expected vote.
       Split localities show only their precincts in that district, and absentee counts only voters assigned to it.
       D % is the Democrat's share of the two-party (D + R) vote. The ± compares it with the same precincts in the chosen election:
-      Baseline is the expected 2026 Dem share from recent elections (NCEC), Spanberger '25 is the 2025 governor's race, Harris '24 the 2024 presidential race.
+      Baseline is the expected 2026 Dem share from recent elections (NCEC), Spanberger '25 is the 2025 governor's race, Harris '24 the 2024 presidential race,
+      and House '24 / House '22 the U.S. House race in the same district (same lines as 2026).
       Until a locality's absentee ballots are counted, its returns are mostly Election Day votes and will run behind the comparison.
       Est. D / R not counted applies each locality's absentee party mix to its uncounted ballots.</p>`;
   $("#cmp").onchange = e => {
